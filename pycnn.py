@@ -111,43 +111,43 @@ class pycnn(object):
             )
 
     # tempA: feedback template, tempB: control template
-    def imageprocessing(self, inputlocation, outputlocation,
-                        tempA, tempB, initialcondition, Ib, t):
+    def imageProcessing(self, inputLocation, outputLocation,
+                        tempA, tempB, initialCondition, Ib, t):
         """Process the image with the input arguments.
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
             tempA (:obj:`list` of :obj:`list`of :obj:`float`): Feedback
                 template.
             tempB (:obj:`list` of :obj:`list`of :obj:`float`): Control
                 template.
-            initialcondition (float): The initial state.
+            initialCondition (float): The initial state.
             Ib (float): System bias.
             t (numpy.ndarray): A numpy array with evenly spaced numbers
                 representing time points.
         """
-        gray = img.open(inputlocation).convert('RGB')
+        gray = img.open(inputLocation).convert('RGB')
         self.m, self.n = gray.size
         u = np.array(gray)
         u = u[:, :, 0]
-        z0 = u * initialcondition
+        z0 = u * initialCondition
         Bu = sig.convolve2d(u, tempB, 'same')
         z0 = z0.flatten()
-        t_final = t.max()
-        t_initial = t.min()
+        tFinal = t.max()
+        tInitial = t.min()
         if t.size > 1:
             dt = t[1] - t[0]
         else:
             dt = t[0]
         ode = sint.ode(self.f) \
             .set_integrator('vode') \
-            .set_initial_value(z0, t_initial) \
+            .set_initial_value(z0, tInitial) \
             .set_f_params(Ib, Bu, tempA)
-        while ode.successful() and ode.t < t_final + 0.1:
-            ode_result = ode.integrate(ode.t + dt)
-        z = self.cnn(ode_result)
+        while ode.successful() and ode.t < tFinal + 0.1:
+            odeResult = ode.integrate(ode.t + dt)
+        z = self.cnn(odeResult)
         l = z[:].reshape((self.n, self.m))
         l = l / (255.0)
         l = np.uint8(np.round(l * 255))
@@ -158,27 +158,27 @@ class pycnn(object):
         #     for j in range(l.shape[1]):
         #         l[i][j] = np.uint8(round(l[i][j] * 255))
         l = img.fromarray(l).convert('RGB')
-        l.save(outputlocation)
+        l.save(outputLocation)
 
     # general image processing for given templates
     def generaltemplates(self,
                          name='Image processing',
-                         inputlocation='',
-                         outputlocation='output.png',
+                         inputLocation='',
+                         outputLocation='output.png',
                          tempA_A=[[0.0, 0.0, 0.0],
                                   [0.0, 0.0, 0.0],
                                   [0.0, 0.0, 0.0]],
                          tempB_B=[[0.0, 0.0, 0.0],
                                   [0.0, 0.0, 0.0],
                                   [0.0, 0.0, 0.0]],
-                         initialcondition=0.0,
+                         initialCondition=0.0,
                          Ib_b=0.0,
                          t=np.linspace(0, 10.0, num=2)):
         """Validate and process the image with the input arguments.
 
         Args:
             name (str): The name of the template.
-            inputlocation (str): The string path for the input image.
+            inputLocation (str): The string path for the input image.
             outputlocation (str): The string path for the output processed
                 image.
             tempA_A (:obj:`list` of :obj:`list`of :obj:`float`): Feedback
@@ -190,19 +190,19 @@ class pycnn(object):
             t (numpy.ndarray): A numpy array with evenly spaced numbers
                 representing time points.
         """
-        self.validate(inputlocation)
+        self.validate(inputLocation)
         print(name, 'initialized.')
-        self.imageprocessing(inputlocation,
-                             outputlocation,
+        self.imageprocessing(inputLocation,
+                             outputLocation,
                              np.array(tempA_A),
                              np.array(tempB_B),
-                             initialcondition,
+                             initialCondition,
                              Ib_b,
                              t)
-        print('Processing on image %s is complete' % (inputlocation))
-        print('Result is saved at %s.\n' % (outputlocation))
+        print('Processing on image %s is complete' % (inputLocation))
+        print('Result is saved at %s.\n' % (outputLocation))
 
-    def edgedetection(self, inputlocation='', outputlocation='output.png'):
+    def edgedetection(self, inputLocation='', outputLocation='output.png'):
         """Performs Edge Detection on the input image.
 
         The output is a binary image showing all edges of the input image in
@@ -221,8 +221,8 @@ class pycnn(object):
         Initial state = 0.0
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
         """
         name = 'Edge detection'
@@ -233,19 +233,19 @@ class pycnn(object):
         # end = 10.0
         t = np.linspace(0, 10.0, num=2)
         # some image processing methods might require more time point samples.
-        initialcondition = 0.0
+        initialCondition = 0.0
         self.generaltemplates(
             name,
-            inputlocation,
-            outputlocation,
+            inputLocation,
+            outputLocation,
             tempA,
             tempB,
-            initialcondition,
+            initialCondition,
             Ib,
             t)
 
-    def grayscaleedgedetection(self, inputlocation='',
-                               outputlocation='output.png'):
+    def grayscaleedgedetection(self, inputLocation='',
+                               outputLocation='output.png'):
         """Performs Gray-scale Edge Detection on the input image.
 
         The output is a Gray-scale image showing an edge map of the input
@@ -264,8 +264,8 @@ class pycnn(object):
         Initial state = 0.0
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
         """
         name = 'Grayscale edge detection'
@@ -273,18 +273,18 @@ class pycnn(object):
         tempB = [[-1.0, -1.0, -1.0], [-1.0, 8.0, -1.0], [-1.0, -1.0, -1.0]]
         Ib = -0.5
         t = np.linspace(0, 1.0, num=101)
-        initialcondition = 0.0
+        initialCondition = 0.0
         self.generaltemplates(
             name,
-            inputlocation,
-            outputlocation,
+            inputLocation,
+            outputLocation,
             tempA,
             tempB,
-            initialcondition,
+            initialCondition,
             Ib,
             t)
 
-    def cornerdetection(self, inputlocation='', outputlocation='output.png'):
+    def cornerdetection(self, inputLocation='', outputLocation='output.png'):
         """Performs Corner Detection on the input image.
 
         The output is a binary image where black pixels represent the convex
@@ -303,8 +303,8 @@ class pycnn(object):
         Initial state = 0.0
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
         """
         name = 'Corner detection'
@@ -315,16 +315,16 @@ class pycnn(object):
         initialcondition = 0.0
         self.generaltemplates(
             name,
-            inputlocation,
-            outputlocation,
+            inputLocation,
+            outputLocation,
             tempA,
             tempB,
-            initialcondition,
+            initialCondition,
             Ib,
             t)
 
-    def diagonallinedetection(self, inputlocation='',
-                              outputlocation='output.png'):
+    def diagonallinedetection(self, inputLocation='',
+                              outputLocation='output.png'):
         """Performs Diagonal Line-Detection on the input image.
 
         The output is a binary image representing the locations of diagonal
@@ -343,8 +343,8 @@ class pycnn(object):
         Initial state = 0.0
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
         """
         name = 'Diagonal line detection'
@@ -352,18 +352,18 @@ class pycnn(object):
         tempB = [[-1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 0.0, -1.0]]
         Ib = -4.0
         t = np.linspace(0, 0.2, num=101)
-        initialcondition = 0.0
+        initialCondition = 0.0
         self.generaltemplates(
             name,
-            inputlocation,
-            outputlocation,
+            inputLocation,
+            outputLocation,
             tempA,
             tempB,
-            initialcondition,
+            initialCondition,
             Ib,
             t)
 
-    def inversion(self, inputlocation='', outputlocation='output.png'):
+    def inversion(self, inputLocation='', outputLocation='output.png'):
         """Performs Inversion (Logic NOT) on the input image.
 
         A = [[0.0 0.0 0.0],
@@ -379,8 +379,8 @@ class pycnn(object):
         Initial state = 0.0
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
         """
         name = 'Inversion'
@@ -388,19 +388,19 @@ class pycnn(object):
         tempB = [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [0.0, 0.0, 0.0]]
         Ib = -2.0
         t = np.linspace(0, 10.0, num=101)
-        initialcondition = 0.0
+        initialCondition = 0.0
         self.generaltemplates(
             name,
-            inputlocation,
-            outputlocation,
+            inputLocation,
+            outputLocation,
             tempA,
             tempB,
-            initialcondition,
+            initialCondition,
             Ib,
             t)
 
-    def optimaledgedetection(self, inputlocation='',
-                             outputlocation='output.png'):
+    def optimaledgedetection(self, inputLocation='',
+                             outputLocation='output.png'):
         """Performs Optimal Edge Detection on the input image.
 
         A = [[0.0 0.0 0.0],
@@ -416,8 +416,8 @@ class pycnn(object):
         Initial state = 0.0
 
         Args:
-            inputlocation (str): The string path for the input image.
-            outputlocation (str): The string path for the output processed
+            inputLocation (str): The string path for the input image.
+            outputLocation (str): The string path for the output processed
                 image.
         """
         name = 'Optimal Edge Detection'
@@ -425,13 +425,13 @@ class pycnn(object):
         tempB = [[-0.11, 0.0, 0.11], [-0.28, 0.0, 0.28], [-0.11, 0.0, 0.11]]
         Ib = 0.0
         t = np.linspace(0, 10.0, num=101)
-        initialcondition = 0.0
+        initialCondition = 0.0
         self.generaltemplates(
             name,
-            inputlocation,
-            outputlocation,
+            inputLocation,
+            outputLocation,
             tempA,
             tempB,
-            initialcondition,
+            initialCondition,
             Ib,
             t)
